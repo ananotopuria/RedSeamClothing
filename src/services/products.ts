@@ -1,3 +1,5 @@
+import { authFetch } from "./auth";
+
 export interface ApiProduct {
   id: number;
   title?: string;
@@ -19,61 +21,27 @@ export type ProductDetail = {
   name: string;
   description: string;
   price: number;
-  brand: {
-    name: string;
-    logo?: string | null;
-  };
-  colors: {
-    id: number;
-    name: string;
-    hex?: string | null;
-    image: string;
-  }[];
+  brand: { name: string; logo?: string | null };
+  colors: { id: number; name: string; hex?: string | null; image: string }[];
   sizes: string[];
 };
 
 const API_URL = "https://api.redseam.redberryinternship.ge/api/products";
 
 export async function fetchProducts(): Promise<ProductItem[]> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found. Please log in first.");
-
-  const res = await fetch(API_URL, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!res.ok) throw new Error(`Failed to load products: ${res.status}`);
-
+  const res = await authFetch(API_URL);
   const json: { data: ApiProduct[] } = await res.json();
-
-  return json.data.map(
-    (p): ProductItem => ({
-      id: p.id,
-      title: p.title ?? p.name ?? "Untitled",
-      price: p.price,
-      image: p.image ?? p.thumbnail ?? "",
-    })
-  );
+  return json.data.map((p) => ({
+    id: p.id,
+    title: p.title ?? p.name ?? "Untitled",
+    price: p.price,
+    image: p.image ?? p.thumbnail ?? "",
+  }));
 }
 
 export async function fetchProductById(
   id: number | string
 ): Promise<ProductDetail> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found. Please log in first.");
-
-  const res = await fetch(`${API_URL}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-  });
-
-  if (!res.ok) throw new Error(`Failed to load product ${id}: ${res.status}`);
-
-  const data: ProductDetail = await res.json();
-  return data;
+  const res = await authFetch(`${API_URL}/${id}`);
+  return (await res.json()) as ProductDetail;
 }

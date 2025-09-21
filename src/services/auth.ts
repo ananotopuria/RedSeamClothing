@@ -1,5 +1,6 @@
 const API_URL = "https://api.redseam.redberryinternship.ge/api";
 const TOKEN_KEY = "auth_token";
+const USER_KEY = "auth_user";
 
 export type ApiError = {
   message?: string;
@@ -7,26 +8,39 @@ export type ApiError = {
 };
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) ?? localStorage.getItem("token");
+}
+
+function setToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+  if (localStorage.getItem("token")) localStorage.removeItem("token");
+  window.dispatchEvent(new Event("auth:changed"));
 }
 
 export function logout() {
   localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem("auth_user");
+  localStorage.removeItem("token");
+  localStorage.removeItem(USER_KEY);
+  window.dispatchEvent(new Event("auth:changed"));
+}
+
+export function getAuthUser<T = unknown>(): T | null {
+  const raw = localStorage.getItem(USER_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
 }
 
 function normalizeErrors(err?: ApiError) {
   if (!err) return "Request failed.";
-  if (err.errors) {
+  if (err.errors)
     return Object.values(err.errors).flat().map(String).join(", ");
-  }
   return err.message ?? "Request failed.";
 }
 
-/**
- * Auth-aware fetch for protected endpoints.
- * Adds Bearer token if present.
- */
 export async function authFetch(input: string, init: RequestInit = {}) {
   const token = getToken();
   const headers = new Headers(init.headers || {});
@@ -62,20 +76,14 @@ export async function login(email: string, password: string) {
   }
 
   if (res.status === 401) throw new Error("Unauthorized: invalid credentials.");
-
-  if (res.status === 422) {
-    const data = (await res.json()) as ApiError;
-    throw new Error(normalizeErrors(data));
-  }
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Login failed (${res.status}): ${text}`);
-  }
+  if (res.status === 422)
+    throw new Error(normalizeErrors((await res.json()) as ApiError));
+  if (!res.ok)
+    throw new Error(`Login failed (${res.status}): ${await res.text()}`);
 
   const data: { token: string; user?: unknown } = await res.json();
-  localStorage.setItem(TOKEN_KEY, data.token);
-  if (data.user) localStorage.setItem("auth_user", JSON.stringify(data.user));
+  setToken(data.token);
+  if (data.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
   return data.token;
 }
 
@@ -106,19 +114,13 @@ export async function register(payload: RegisterPayload) {
     throw new Error(`Network error: ${(e as Error).message}`);
   }
 
-  if (res.status === 422) {
-    const data = (await res.json()) as ApiError;
-    throw new Error(normalizeErrors(data));
-  }
-
+  if (res.status === 422)
+    throw new Error(normalizeErrors((await res.json()) as ApiError));
   if (res.status === 401) {
     const data = (await res.json()) as ApiError;
     throw new Error(data.message ?? "Unauthorized.");
   }
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Registration failed (${res.status}): ${text}`);
-  }
+  if (!res.ok)
+    throw new Error(`Registration failed (${res.status}): ${await res.text()}`);
   return true;
 }

@@ -93,8 +93,6 @@ function CartSidePanel({
                 );
               })}
             </ul>
-
-            {/* Summary */}
             <div className="mt-6 border-t pt-4">
               <div className="flex justify-between">
                 <span>სულ რაოდენობა</span>
