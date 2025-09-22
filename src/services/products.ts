@@ -56,10 +56,93 @@ function pickFirstImage(p: ApiProduct): string {
   return toAbsolute(found ?? "");
 }
 
+export type ProductsQuery = {
+  page?: number;
+  price_from?: number;
+  price_to?: number;
+  sort?: string;
+};
+
+export type PageLinks = Array<{
+  url: string | null;
+  label: string;
+  active: boolean;
+}>;
+
+export type ProductsPage = {
+  items: ProductItem[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from?: number | null;
+    to?: number | null;
+    path?: string;
+  };
+  links: PageLinks;
+};
+
+export async function fetchProductsPaged(
+  query: ProductsQuery = {}
+): Promise<ProductsPage> {
+  const params = new URLSearchParams();
+  if (query.page) params.set("page", String(query.page));
+  if (query.price_from != null)
+    params.set("filter[price_from]", String(query.price_from));
+  if (query.price_to != null)
+    params.set("filter[price_to]", String(query.price_to));
+  if (query.sort) params.set("sort", query.sort);
+
+  const url = `${PRODUCTS_URL}?${params.toString()}`;
+  const res = await authFetch(url, { headers: { Accept: "application/json" } });
+  if (!res.ok)
+    throw new Error((await res.text()) || "Failed to fetch products");
+
+  const json = (await res.json()) as {
+    data: ApiProduct[];
+    current_page?: number;
+    last_page?: number;
+    per_page?: number;
+    total?: number;
+    from?: number | null;
+    to?: number | null;
+    path?: string;
+    links?: PageLinks;
+  };
+
+  const items: ProductItem[] = (json.data ?? []).map((p) => ({
+    id: p.id,
+    title: p.title ?? p.name ?? "Untitled",
+    price: p.price,
+    image: pickFirstImage(p),
+  }));
+
+  const perPage = json.per_page ?? 10;
+  const total = json.total ?? items.length;
+  const computedLast = Math.max(1, Math.ceil(total / perPage));
+
+  return {
+    items,
+    meta: {
+      current_page: json.current_page ?? 1,
+      last_page: json.last_page ?? computedLast,
+      per_page: perPage,
+      total,
+      from: json.from ?? null,
+      to: json.to ?? null,
+      path: json.path,
+    },
+    links: json.links ?? [],
+  };
+}
+
 export async function fetchProducts(): Promise<ProductItem[]> {
-  const res = await authFetch(PRODUCTS_URL);
+  const res = await authFetch(PRODUCTS_URL, {
+    headers: { Accept: "application/json" },
+  });
   const json = (await res.json()) as { data: ApiProduct[] };
-  return json.data.map((p) => ({
+  return (json.data ?? []).map((p) => ({
     id: p.id,
     title: p.title ?? p.name ?? "Untitled",
     price: p.price,
@@ -70,7 +153,9 @@ export async function fetchProducts(): Promise<ProductItem[]> {
 export async function fetchProductById(
   id: number | string
 ): Promise<ProductDetail> {
-  const res = await authFetch(`${PRODUCTS_URL}/${id}`);
+  const res = await authFetch(`${PRODUCTS_URL}/${id}`, {
+    headers: { Accept: "application/json" },
+  });
   const data = (await res.json()) as ProductDetail;
 
   data.colors = (data.colors ?? []).map((c) => ({
@@ -85,7 +170,6 @@ export async function fetchProductById(
       typeof x === "string" ? toAbsolute(x) : { url: toAbsolute(x.url) }
     );
   }
-
   return data;
 }
 

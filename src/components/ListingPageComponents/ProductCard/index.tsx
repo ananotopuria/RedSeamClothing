@@ -3,14 +3,14 @@ import type { ProductItem } from "../../../services/products";
 
 function ProductCard({ p }: { p: ProductItem }) {
   return (
-    <article className="rounded-2xl border p-3 hover:shadow-md transition bg-white">
+    <article className="rounded-[1rem] w-[40rem] mb-[4.8rem]">
       <Link to={`/products/${p.id}`} className="block">
-        <div className="aspect-[4/3] overflow-hidden rounded-xl bg-zinc-100 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           {p.image ? (
             <img
               src={p.image}
               alt={p.title}
-              className="w-full h-full object-cover"
+              className="w-[40rem] h-[54rem] rounded-[1rem]"
               loading="lazy"
               referrerPolicy="no-referrer"
               onError={(e) => {
@@ -21,8 +21,10 @@ function ProductCard({ p }: { p: ProductItem }) {
             <span className="text-zinc-400 text-sm">No image</span>
           )}
         </div>
-        <h3 className="mt-3 font-medium line-clamp-2">{p.title}</h3>
-        <p className="text-sm text-zinc-700">${p.price}</p>
+        <h3 className="mt-[1.2rem] font-medium text-[1.8rem] line-clamp-2 text-[#000000] leading-none tracking-normal">
+          {p.title}
+        </h3>
+        <p className="mt-[0.5rem] text-[#000000] text-[1.6rem]">${p.price}</p>
       </Link>
     </article>
   );
