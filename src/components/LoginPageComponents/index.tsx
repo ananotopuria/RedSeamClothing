@@ -71,7 +71,7 @@ function LoginPageComponents() {
         <form onSubmit={onSubmit} className="mt-6 space-y-3" noValidate>
           <div>
             <input
-              className={`w-full border rounded-[1rem] px-6 py-2 h-[4.2rem] text-[1.4rem] ${
+              className={`w-full border rounded-[1rem] px-6 py-2 h-[4.2rem] text-[1.4rem] mt-[5rem] ${
                 hasEmailError ? "border-red-500" : ""
               }`}
               placeholder="Email *"
@@ -91,7 +91,7 @@ function LoginPageComponents() {
 
           <div className="relative">
             <input
-              className={`w-full border rounded-[1rem] pr-12 pl-6 py-2 h-[4.2rem] text-[1.4rem] ${
+              className={`w-full border rounded-[1rem] pr-12 pl-6 py-2 h-[4.2rem] text-[1.4rem] mt-[2rem] mb-[5rem] ${
                 hasPasswordError ? "border-red-500" : ""
               }`}
               placeholder="Password *"
@@ -107,7 +107,7 @@ function LoginPageComponents() {
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
-              className="absolute inset-y-0 right-3 my-auto h-9 w-9 grid place-items-center rounded-md hover:bg-gray-100"
+              className="absolute inset-y-0 right-3 bottom-10 my-auto h-9 w-9 grid place-items-center rounded-md hover:bg-gray-100"
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
               tabIndex={0}

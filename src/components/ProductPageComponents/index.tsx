@@ -1,6 +1,10 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { fetchProductById, type ProductDetail } from "../../services/products";
+import { useEffect, useMemo, useState } from "react";
+import {
+  fetchProductById,
+  getHeroImage,
+  type ProductDetail,
+} from "../../services/products";
 import { useCart } from "../../state/useCart";
 
 function ProductPageComponents() {
@@ -9,17 +13,17 @@ function ProductPageComponents() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  const [selectedColorIdx, setSelectedColorIdx] = useState(0);
-  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColorIdx, setSelectedColorIdx] = useState<number>(0);
+  const [selectedSize, setSelectedSize] = useState<string>("");
 
   const { add } = useCart();
 
   useEffect(() => {
     (async () => {
       try {
+        setLoading(true);
         const data = await fetchProductById(id!);
         setProduct(data);
-
         setSelectedColorIdx(0);
         setSelectedSize(data.sizes?.[0] ?? "");
       } catch (e) {
@@ -30,20 +34,44 @@ function ProductPageComponents() {
     })();
   }, [id]);
 
+  useEffect(() => {
+    if (!product?.colors?.length) {
+      setSelectedColorIdx(0);
+      return;
+    }
+    if (selectedColorIdx >= product.colors.length) {
+      setSelectedColorIdx(0);
+    }
+  }, [product?.colors?.length, selectedColorIdx]);
+
+  const currentColor = useMemo(
+    () => product?.colors?.[selectedColorIdx],
+    [product, selectedColorIdx]
+  );
+
+  const heroImage = useMemo(
+    () => (product ? getHeroImage(product, selectedColorIdx) : ""),
+    [product, selectedColorIdx]
+  );
+
+  const canAdd =
+    !!product &&
+    !!currentColor &&
+    !!selectedSize &&
+    Number.isFinite(product.price);
+
   function handleAddToCart() {
-    if (!product) return;
-    const color = product.colors?.[selectedColorIdx];
-    if (!color || !selectedSize) return;
+    if (!product || !currentColor || !selectedSize) return;
 
     add({
       productId: product.id,
-      colorId: color.id,
+      colorId: currentColor.id,
       size: selectedSize,
       qty: 1,
-      name: "",
-      image: "",
-      colorName: "",
-      price: 0,
+      name: product.name,
+      image: heroImage,
+      colorName: currentColor.name,
+      price: product.price,
     });
   }
 
@@ -51,15 +79,13 @@ function ProductPageComponents() {
   if (err) return <main className="p-8 text-red-600">{err}</main>;
   if (!product) return <main className="p-8">Product not found</main>;
 
-  const currentColor = product.colors?.[selectedColorIdx];
-
   return (
     <main className="mx-auto max-w-4xl p-8 space-y-6">
       <h1 className="text-3xl font-semibold">{product.name}</h1>
       <p className="text-gray-700">{product.description}</p>
       <p className="mt-2 font-medium">${product.price}</p>
 
-      {product.colors?.length ? (
+      {!!product.colors?.length && (
         <div>
           <h3 className="mb-2 font-medium">Color</h3>
           <div className="flex flex-wrap gap-2">
@@ -79,9 +105,9 @@ function ProductPageComponents() {
             ))}
           </div>
         </div>
-      ) : null}
+      )}
 
-      {product.sizes?.length ? (
+      {!!product.sizes?.length && (
         <div>
           <h3 className="mb-2 font-medium">Size</h3>
           <select
@@ -96,20 +122,40 @@ function ProductPageComponents() {
             ))}
           </select>
         </div>
-      ) : null}
+      )}
 
-      {currentColor?.image ? (
-        <img
-          src={currentColor.image}
-          alt={`${product.name} - ${currentColor.name}`}
-          className="w-full max-w-md rounded-lg border"
-        />
-      ) : null}
+      <div className="mt-2">
+        {heroImage ? (
+          <img
+            src={heroImage}
+            alt={`${product.name}${
+              product.colors?.[selectedColorIdx]
+                ? ` - ${product.colors[selectedColorIdx].name}`
+                : ""
+            }`}
+            className="w-full max-w-md rounded-lg border"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : (
+          <div className="w-full max-w-md aspect-[4/3] rounded-lg border bg-zinc-100 flex items-center justify-center text-zinc-400">
+            No image
+          </div>
+        )}
+      </div>
 
       <button
         type="button"
         onClick={handleAddToCart}
-        className="rounded-md bg-black text-white px-6 py-3"
+        disabled={!canAdd}
+        className={`rounded-md px-6 py-3 text-white ${
+          canAdd
+            ? "bg-black hover:bg-zinc-800"
+            : "bg-zinc-400 cursor-not-allowed"
+        }`}
       >
         Add to cart
       </button>
