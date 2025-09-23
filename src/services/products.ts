@@ -61,6 +61,7 @@ export type ProductsQuery = {
   price_from?: number;
   price_to?: number;
   sort?: string;
+  per_page?: number;
 };
 
 export type PageLinks = Array<{
@@ -88,6 +89,7 @@ export async function fetchProductsPaged(
 ): Promise<ProductsPage> {
   const params = new URLSearchParams();
   if (query.page) params.set("page", String(query.page));
+  if (query.per_page) params.set("per_page", String(query.per_page));
   if (query.price_from != null)
     params.set("filter[price_from]", String(query.price_from));
   if (query.price_to != null)
@@ -119,18 +121,21 @@ export async function fetchProductsPaged(
   }));
 
   const perPage = json.per_page ?? 10;
-  const total = json.total ?? items.length;
-  const computedLast = Math.max(1, Math.ceil(total / perPage));
+  const total = json.total ?? json.data?.length ?? 0;
+  const current = json.current_page ?? 1;
+
+  const computedFrom = total === 0 ? 0 : (current - 1) * perPage + 1;
+  const computedTo = Math.min(total, current * perPage);
 
   return {
     items,
     meta: {
-      current_page: json.current_page ?? 1,
-      last_page: json.last_page ?? computedLast,
+      current_page: current,
+      last_page: json.last_page ?? Math.max(1, Math.ceil(total / perPage)),
       per_page: perPage,
       total,
-      from: json.from ?? null,
-      to: json.to ?? null,
+      from: json.from ?? computedFrom,
+      to: json.to ?? computedTo,
       path: json.path,
     },
     links: json.links ?? [],

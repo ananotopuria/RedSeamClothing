@@ -3,37 +3,42 @@ type Props = {
   totalPages: number;
   onPageChange: (page: number) => void;
   hideWhenSingle?: boolean;
+  adjacentCount?: number;
+  fullListThreshold?: number;
 };
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
-
-function asInt(n: unknown, fallback = 1) {
+function asPosInt(n: unknown, fallback = 1) {
   const v = Number(n);
   return Number.isFinite(v) && v > 0 ? Math.floor(v) : fallback;
 }
 
-function buildPages(current: number, last: number): (number | "...")[] {
-  const delta = 1;
-  const range: number[] = [];
-  for (let i = 1; i <= last; i++) {
-    if (
-      i === 1 ||
-      i === last ||
-      (i >= current - delta && i <= current + delta)
-    ) {
-      range.push(i);
-    }
+function buildPages(
+  current: number,
+  last: number,
+  adjacentCount: number,
+  fullListThreshold: number
+): (number | "...")[] {
+  if (last <= fullListThreshold) {
+    return Array.from({ length: last }, (_, i) => i + 1); // 1..last
   }
-  const pages: (number | "...")[] = [];
-  let prev: number | null = null;
-  for (const n of range) {
-    if (prev !== null && n - prev > 1) pages.push("...");
-    pages.push(n);
-    prev = n;
+  const set = new Set<number>();
+  set.add(1);
+  set.add(last);
+  for (let i = current - adjacentCount; i <= current + adjacentCount; i++) {
+    if (i >= 1 && i <= last) set.add(i);
   }
-  return pages;
+  const sorted = Array.from(set).sort((a, b) => a - b);
+  const out: (number | "...")[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const n = sorted[i];
+    const prev = sorted[i - 1];
+    if (i > 0 && n - (prev as number) > 1) out.push("...");
+    out.push(n);
+  }
+  return out;
 }
 
 export default function Pagination({
@@ -41,18 +46,18 @@ export default function Pagination({
   totalPages,
   onPageChange,
   hideWhenSingle = true,
+  adjacentCount = 1,
+  fullListThreshold = 7,
 }: Props) {
-  console.log("Pagination props =>", { page, totalPages });
-
-  const total = Math.max(1, asInt(totalPages, 1));
-  const curr = clamp(asInt(page, 1), 1, total);
+  const total = Math.max(1, asPosInt(totalPages, 1));
+  const curr = clamp(asPosInt(page, 1), 1, total);
 
   if (hideWhenSingle && total <= 1) return null;
 
-  const pages = buildPages(curr, total);
+  const pages = buildPages(curr, total, adjacentCount, fullListThreshold);
 
   const go = (p: number) => {
-    const next = clamp(p, 1, total);
+    const next = clamp(asPosInt(p, curr), 1, total);
     if (next !== curr) onPageChange(next);
   };
 

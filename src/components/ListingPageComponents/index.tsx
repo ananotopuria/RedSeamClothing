@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { fetchProductsPaged, type ProductItem } from "../../services/products";
 import PaginationComp from "./Pagination";
 import ProductCard from "./ProductCard";
+import FilterSortBar from "./FilterSortBar";
 
 function ListingPageComponents() {
   const [items, setItems] = useState<ProductItem[]>([]);
@@ -12,13 +13,17 @@ function ListingPageComponents() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [from, setFrom] = useState<number | null>(null);
+  const [to, setTo] = useState<number | null>(null);
+  const [total, setTotal] = useState(0);
+
   const [params, setParams] = useSearchParams();
 
   const query = useMemo(() => {
     const qPage = Number(params.get("page") || 1);
     const price_from = params.get("price_from");
     const price_to = params.get("price_to");
-    const sort = params.get("sort") || undefined;
+    const sort = params.get("sort") || "-created_at";
     return {
       page: Number.isFinite(qPage) && qPage > 0 ? qPage : 1,
       price_from: price_from ? Number(price_from) : undefined,
@@ -33,12 +38,14 @@ function ListingPageComponents() {
       try {
         setLoading(true);
         setErr(null);
-        const res = await fetchProductsPaged(query);
+        const res = await fetchProductsPaged({ ...query, per_page: 6 });
         if (!alive) return;
-        console.log("meta", res.meta);
         setItems(res.items);
         setPage(res.meta.current_page);
         setTotalPages(res.meta.last_page);
+        setFrom(res.meta.from ?? null);
+        setTo(res.meta.to ?? null);
+        setTotal(res.meta.total);
       } catch (e) {
         if (!alive) return;
         setErr((e as Error).message);
@@ -62,6 +69,12 @@ function ListingPageComponents() {
     <main className="mt-[7rem] px-[10rem]">
       <h1 className="text-[4.2rem] font-semibold text-[#10151F]">Products</h1>
 
+      <FilterSortBar
+        from={from ?? undefined}
+        to={to ?? undefined}
+        total={total}
+      />
+
       {loading && <p>Loading…</p>}
       {err && <p className="text-red-600">{err}</p>}
 
@@ -73,10 +86,10 @@ function ListingPageComponents() {
             ))}
           </div>
 
-          <div className=" mt-6">
+          <div className="mt-6">
             <PaginationComp
               page={page}
-              totalPages={Math.max(totalPages, 5)}
+              totalPages={totalPages}
               onPageChange={handlePageChange}
               hideWhenSingle={false}
             />
