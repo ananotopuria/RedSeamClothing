@@ -28,11 +28,11 @@ export default function Header({ onOpenCart }: HeaderProps) {
         ) : (
           <button
             onClick={onOpenCart}
-            className="relative flex items-center gap-2 font-400 text-[1.2rem] border px-3 py-2 rounded-md"
+            className="relative flex items-center gap-2 font-400 text-[2rem] px-3 py-2"
             aria-label="Open cart"
           >
             <FaCartShopping />
-            Cart
+
             {totalQty > 0 && (
               <span className="absolute -top-2 -right-2 rounded-full bg-black text-white text-xs px-2 py-0.5">
                 {totalQty}
