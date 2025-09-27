@@ -1,13 +1,4 @@
 import { authFetch } from "./auth";
-type UnknownRecord = Record<string, unknown>;
-
-function isObject(v: unknown): v is UnknownRecord {
-  return typeof v === "object" && v !== null;
-}
-
-function asArray<T = unknown>(v: unknown): T[] {
-  return Array.isArray(v) ? (v as T[]) : [];
-}
 
 export interface ApiProduct {
   id: number;
@@ -54,12 +45,17 @@ export type ProductDetail = {
   name: string;
   description: string;
   price: number;
-  brand: { name: string; logo?: string | null };
-  colors: { id: number; name: string; hex?: string | null; image: string }[];
+  brand: { name: string | null; logo?: string | null };
+  colors: ProductColor[];
   sizes: string[];
   image?: string | null;
   thumbnail?: string | null;
   images?: Array<{ url?: string } | string>;
+};
+
+export type ProductColor = {
+  name: string | undefined;
+  image: string | undefined;
 };
 
 const BASE_URL = "https://api.redseam.redberryinternship.ge";
@@ -121,133 +117,6 @@ export type ProductsPage = {
   };
   links: PageLinks;
 };
-
-function normalizeProductDetail(apiRaw: unknown): ProductDetail {
-  const api = isObject(apiRaw) ? apiRaw : {};
-
-  const images: Array<string | { url: string }> = [];
-  const rawImages = asArray(api["images"]);
-  for (const it of rawImages) {
-    if (typeof it === "string") {
-      const u = toAbsolute(it);
-      if (u) images.push(u);
-    } else if (isObject(it)) {
-      const u = toAbsolute(
-        (it["url"] as string | undefined) ??
-          (it["src"] as string | undefined) ??
-          (it["image"] as string | undefined) ??
-          ""
-      );
-      if (u) images.push({ url: u });
-    }
-  }
-
-  const singleImage = toAbsolute(
-    (api["image"] as string | null | undefined) ??
-      (api["image_url"] as string | null | undefined) ??
-      null
-  );
-  const thumbnail = toAbsolute(api["thumbnail"] as string | null | undefined);
-  if (singleImage) images.unshift(singleImage);
-  if (thumbnail) images.push(thumbnail);
-
-  const rawColorsPrimary = api["colors"];
-  const rawColorOptions = api["color_options"];
-  const rawVariants = asArray(api["variants"]).map((v) =>
-    isObject(v) ? v["color"] : undefined
-  );
-  const rawColors = rawColorsPrimary ?? rawColorOptions ?? rawVariants;
-
-  const colors = asArray(rawColors)
-    .filter(Boolean)
-    .map((c, idx) => {
-      const obj = isObject(c) ? c : {};
-      const id = (obj["id"] as number | undefined) ?? idx;
-      const name =
-        (obj["name"] as string | undefined) ??
-        (obj["title"] as string | undefined) ??
-        String(c ?? "Color");
-      const hex =
-        (obj["hex"] as string | null | undefined) ??
-        (obj["hex_code"] as string | null | undefined) ??
-        null;
-      const img =
-        (obj["image"] as string | undefined) ??
-        (obj["thumbnail"] as string | undefined) ??
-        (obj["url"] as string | undefined) ??
-        (obj["src"] as string | undefined) ??
-        null;
-
-      return { id, name, hex, image: toAbsolute(img ?? "") };
-    });
-
-  const sizeCandidatesUnknown = [
-    api["sizes"],
-    api["size_options"],
-    api["variant_sizes"],
-    isObject(api["options"])
-      ? (api["options"] as UnknownRecord)["sizes"]
-      : undefined,
-  ];
-
-  let sizes: string[] = [];
-  for (const cand of sizeCandidatesUnknown) {
-    const arr = asArray(cand);
-    if (arr.length) {
-      sizes = arr
-        .map((s) =>
-          typeof s === "string"
-            ? s
-            : isObject(s)
-            ? (s["name"] as string | undefined) ??
-              (s["value"] as string | undefined) ??
-              String(s)
-            : String(s)
-        )
-        .filter(Boolean) as string[];
-      break;
-    }
-  }
-  if (!sizes.length && api["size"]) {
-    sizes = [String(api["size"])];
-  }
-
-  const brandObj = isObject(api["brand"])
-    ? (api["brand"] as UnknownRecord)
-    : {};
-  const brandName =
-    (brandObj["name"] as string | undefined) ??
-    (api["brand_name"] as string | undefined) ??
-    (api["manufacturer"] as string | undefined) ??
-    (api["vendor"] as string | undefined) ??
-    "—";
-  const brandLogo = toAbsolute(
-    (brandObj["logo"] as string | null | undefined) ??
-      (api["brand_logo"] as string | null | undefined) ??
-      null
-  );
-
-  return {
-    id: Number(api["id"]),
-    name:
-      (api["name"] as string | undefined) ??
-      (api["title"] as string | undefined) ??
-      "Untitled",
-    description:
-      (api["description"] as string | undefined) ??
-      (api["details"] as string | undefined) ??
-      "",
-    price: Number(
-      (api["price"] as number | undefined) ?? api["current_price"] ?? 0
-    ),
-    brand: { name: brandName, logo: brandLogo },
-    colors,
-    sizes,
-    image: singleImage || null,
-    thumbnail: thumbnail || null,
-    images,
-  };
-}
 
 export async function fetchProductsPaged(
   query: ProductsQuery = {}
@@ -325,28 +194,37 @@ export async function fetchProducts(): Promise<ProductItem[]> {
 
 export async function fetchProductById(
   id: number | string
-): Promise<ProductDetail> {
+): Promise<ProductDetail | null> {
   const res = await authFetch(`${PRODUCTS_URL}/${id}`, {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) {
     throw new Error((await res.text()) || `Failed to fetch product #${id}`);
   }
-  const api = await res.json();
-  const data = normalizeProductDetail(api);
 
-  data.colors = (data.colors ?? []).map((c) => ({
-    ...c,
-    image: toAbsolute(c.image),
-  }));
-  if (data.brand?.logo) data.brand.logo = toAbsolute(data.brand.logo);
-  if (data.image) data.image = toAbsolute(data.image);
-  if (data.thumbnail) data.thumbnail = toAbsolute(data.thumbnail);
-  if (Array.isArray(data.images)) {
-    data.images = data.images.map((x) =>
-      typeof x === "string" ? toAbsolute(x) : { url: toAbsolute(x.url) }
-    );
-  }
+  const json = await res.json();
+  console.log(json);
+  const imagesMap = json["images"].map((x: unknown) => {
+    return { url: x };
+  });
+  console.log("🚀 ~ fetchProductById ~ imagesMap:", imagesMap);
+  const colorsMap = json["available_colors"].map(
+    (x: unknown, i: string | number) => {
+      return { name: x, image: imagesMap[i].url };
+    }
+  );
+  const data = {
+    colors: colorsMap,
+    sizes: json["available_sizes"],
+    brand: { name: json["brand"].name, logo: json["brand"].image },
+    name: json["name"],
+    description: json["description"],
+    price: json["price"],
+    image: json["cover_image"],
+    images: imagesMap,
+    id: json["id"],
+  } as ProductDetail;
+  console.log(data);
   return data;
 }
 

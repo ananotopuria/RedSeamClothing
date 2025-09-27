@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import {
   fetchProductById,
@@ -6,6 +6,7 @@ import {
   type ProductDetail,
 } from "../../services/products";
 import { useCart } from "../../state/useCart";
+import { useIsLoggedIn } from "../../hooks/useIsLoggedIn";
 
 function classNames(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
@@ -25,6 +26,9 @@ export default function ProductPageComponents() {
   const [activeImage, setActiveImage] = useState<string>("");
 
   const { add } = useCart();
+  const [localErr, setLocalErr] = useState<string | null>(null);
+  const isLoggedIn = useIsLoggedIn();
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -34,7 +38,7 @@ export default function ProductPageComponents() {
         const data = await fetchProductById(id!);
         setProduct(data);
         setSelectedColorIdx(0);
-        setSelectedSize(data.sizes?.[0] ?? "");
+        setSelectedSize(data?.sizes?.[0] ?? "");
       } catch (e) {
         setErr((e as Error).message || "Failed to load product");
       } finally {
@@ -78,7 +82,7 @@ export default function ProductPageComponents() {
     }
 
     for (const c of product?.colors ?? []) {
-      if (c.image) imgs.push(c.image);
+      if (c?.image) imgs.push(c.image);
     }
 
     if (product?.image) imgs.push(product.image);
@@ -87,25 +91,35 @@ export default function ProductPageComponents() {
     return Array.from(new Set(imgs.filter(Boolean)));
   }, [product]);
 
+  const requiresColor = !!product?.colors?.length;
+  const requiresSize = !!product?.sizes?.length;
+
   const canAdd =
     !!product &&
-    !!currentColor &&
-    !!selectedSize &&
+    (!requiresColor || !!currentColor) &&
+    (!requiresSize || !!selectedSize) &&
     Number.isFinite(product.price) &&
     qty > 0;
 
   function handleAddToCart() {
-    if (!product || !currentColor || !selectedSize) return;
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+    console.log("ADd cart handle");
+    console.log("🚀 ~ handleAddToCart ~ product:", product);
+    if (!product || !currentColor) return;
+    console.log("ADd cart handle 11");
+    setLocalErr(null);
     add({
       productId: product.id,
-      colorId: currentColor.id,
       size: selectedSize,
       qty,
       name: product.name,
       image: activeImage || computedHero || gallery[0] || "",
       colorName: currentColor.name,
       price: product.price,
-    });
+    }).catch((e) => setLocalErr((e as Error).message));
   }
 
   if (loading) {
@@ -240,13 +254,18 @@ export default function ProductPageComponents() {
               <div className="flex flex-wrap gap-3">
                 {product.colors.map((c, idx) => (
                   <button
-                    key={c.id}
+                    key={idx}
                     type="button"
-                    title={c.name}
+                    // title={c.name}
                     aria-label={`Select color ${c.name}`}
                     onClick={() => {
                       setSelectedColorIdx(idx);
-                      if (c.image) setActiveImage(c.image);
+                      const next =
+                        c.image ||
+                        getHeroImage(product, idx) ||
+                        gallery[0] ||
+                        "";
+                      setActiveImage(next);
                     }}
                     className={classNames(
                       "h-9 w-9 rounded-full border flex items-center justify-center ring-offset-2 focus:outline-none focus:ring transition",
@@ -258,11 +277,10 @@ export default function ProductPageComponents() {
                     <span
                       className="h-7 w-7 rounded-full block"
                       style={
-                        c.hex
-                          ? { backgroundColor: c.hex }
+                        c.name
+                          ? { backgroundColor: c.name }
                           : c.image
                           ? {
-                              backgroundImage: `url(${c.image})`,
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                             }
@@ -328,17 +346,20 @@ export default function ProductPageComponents() {
             <button
               type="button"
               onClick={handleAddToCart}
-              disabled={!canAdd}
+              disabled={isLoggedIn ? !canAdd : false}
               className={classNames(
                 "h-12 w-full rounded-md text-white flex items-center justify-center gap-2 transition focus:outline-none focus:ring ring-offset-2",
-                canAdd
+                isLoggedIn && canAdd
                   ? "bg-[#F24A0D] hover:bg-[#e1440d] focus:ring-orange-400"
                   : "bg-zinc-400 cursor-not-allowed"
               )}
             >
               <span aria-hidden>🛒</span>
-              <span>Add to cart</span>
+              <span>{isLoggedIn ? "Add to cart" : "Log in to add"}</span>
             </button>
+            {localErr && (
+              <p className="text-red-600 text-sm mt-2">{localErr}</p>
+            )}
           </div>
 
           <hr className="my-8 border-zinc-200" />
