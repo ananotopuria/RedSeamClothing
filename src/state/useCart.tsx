@@ -15,6 +15,7 @@ import {
   removeCartProduct,
   updateCartProduct,
 } from "../services/cartApi";
+import { useIsLoggedIn } from "../hooks/useIsLoggedIn";
 
 type CartState = {
   items: LocalCartItem[];
@@ -43,7 +44,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     loading: true,
     error: null,
   });
-
+  const isLoggedIn = useIsLoggedIn();
   const presentRef = useRef<Record<string, Partial<LocalCartItem>>>({});
 
   const clearCart = useCallback(async () => {
@@ -70,8 +71,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    clearCart();
+
+    if (isLoggedIn) {
+      void refresh();
+    }
+  }, [refresh, isLoggedIn, clearCart]);
 
   const findByKey = useCallback(
     (key: string) => {
