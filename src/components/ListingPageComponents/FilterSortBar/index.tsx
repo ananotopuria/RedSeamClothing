@@ -192,7 +192,7 @@ export default function FilterSortBar({ from, to, total }: Props) {
           </button>
 
           {openSort && (
-            <div className="absolute right-0 z-20 mt-3 w-[240px] rounded-md border bg-white p-2 shadow-lg">
+            <div className="absolute right-0 z-20 mt-3 w-[22rem] h-[18rem] rounded-[8px] border bg-white p-2 shadow-lg">
               <div className="px-3 py-2 text-[12px] text-zinc-500">Sort by</div>
               {SORTS.map((opt) => (
                 <button

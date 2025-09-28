@@ -91,13 +91,10 @@ export default function ProductPageComponents() {
     return Array.from(new Set(imgs.filter(Boolean)));
   }, [product]);
 
-  const requiresColor = !!product?.colors?.length;
-  const requiresSize = !!product?.sizes?.length;
-
   const canAdd =
     !!product &&
-    (!requiresColor || !!currentColor) &&
-    (!requiresSize || !!selectedSize) &&
+    currentColor &&
+    selectedSize &&
     Number.isFinite(product.price) &&
     qty > 0;
 
@@ -106,10 +103,9 @@ export default function ProductPageComponents() {
       navigate("/login");
       return;
     }
-    console.log("ADd cart handle");
-    console.log("🚀 ~ handleAddToCart ~ product:", product);
+    console.log("🚀 ~ handleAddToCart ~ selectedSize:", selectedSize);
+
     if (!product || !currentColor) return;
-    console.log("ADd cart handle 11");
     setLocalErr(null);
     add({
       productId: product.id,
@@ -293,7 +289,7 @@ export default function ProductPageComponents() {
             </div>
           )}
 
-          {!!product.sizes?.length && (
+          {product.sizes?.length > 0 ? (
             <div className="mt-6">
               <div className="text-sm text-zinc-600 mb-2">
                 Size:{" "}
@@ -319,6 +315,8 @@ export default function ProductPageComponents() {
                 ))}
               </div>
             </div>
+          ) : (
+            <div>no sizes available / STYLE ASAP</div>
           )}
 
           <div className="mt-[5rem]">

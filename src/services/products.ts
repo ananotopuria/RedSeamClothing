@@ -137,14 +137,17 @@ export async function fetchProductsPaged(
 
   const json = (await res.json()) as {
     data: ApiProduct[];
-    current_page?: number;
-    last_page?: number;
-    per_page?: number;
-    total?: number;
-    from?: number | null;
-    to?: number | null;
-    path?: string;
-    links?: PageLinks;
+
+    meta: {
+      current_page?: number;
+      last_page?: number;
+      per_page?: number;
+      total?: number;
+      from?: number | null;
+      to?: number | null;
+      path?: string;
+      links?: PageLinks;
+    };
   };
 
   const items: ProductItem[] = (json.data ?? []).map((p) => ({
@@ -154,9 +157,9 @@ export async function fetchProductsPaged(
     image: pickFirstImage(p),
   }));
 
-  const perPage = json.per_page ?? 10;
-  const total = json.total ?? json.data?.length ?? 0;
-  const current = json.current_page ?? 1;
+  const perPage = json.meta.per_page ?? 10;
+  const total = json.meta.total ?? json.data?.length ?? 0;
+  const current = json.meta.current_page ?? 1;
 
   const computedFrom = total === 0 ? 0 : (current - 1) * perPage + 1;
   const computedTo = Math.min(total, current * perPage);
@@ -165,14 +168,14 @@ export async function fetchProductsPaged(
     items,
     meta: {
       current_page: current,
-      last_page: json.last_page ?? Math.max(1, Math.ceil(total / perPage)),
+      last_page: json.meta.last_page ?? Math.max(1, Math.ceil(total / perPage)),
       per_page: perPage,
       total,
-      from: json.from ?? computedFrom,
-      to: json.to ?? computedTo,
-      path: json.path,
+      from: json.meta.from ?? computedFrom,
+      to: json.meta.to ?? computedTo,
+      path: json.meta.path,
     },
-    links: json.links ?? [],
+    links: json.meta.links ?? [],
   };
 }
 
@@ -203,11 +206,9 @@ export async function fetchProductById(
   }
 
   const json = await res.json();
-  console.log(json);
   const imagesMap = json["images"].map((x: unknown) => {
     return { url: x };
   });
-  console.log("🚀 ~ fetchProductById ~ imagesMap:", imagesMap);
   const colorsMap = json["available_colors"].map(
     (x: unknown, i: string | number) => {
       return { name: x, image: imagesMap[i].url };
@@ -224,7 +225,6 @@ export async function fetchProductById(
     images: imagesMap,
     id: json["id"],
   } as ProductDetail;
-  console.log(data);
   return data;
 }
 

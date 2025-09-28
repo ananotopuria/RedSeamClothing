@@ -49,9 +49,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       setState((s) => ({ ...s, loading: true, error: null }));
       const dto = await getCart();
-      console.log("🚀 ~ CartProvider ~ dto:", dto);
       const items = mapDtoToLocal(dto, presentRef.current);
-      console.log("🚀 ~ CartProvider ~ items:", items);
       for (const it of items) presentRef.current[cartItemKey(it)] = it;
       setState({ items, loading: false, error: null });
     } catch (e) {
@@ -74,7 +72,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const add = useCallback(
     async (p: AddPayload) => {
       try {
-        console.log("add cart", p);
         const key = cartItemKey({
           productId: p.productId,
           colorName: p.colorName || "",
@@ -102,7 +99,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const setQty = useCallback(
     async (key: string, qty: number) => {
-      console.log("🚀 ~ CartProvider ~ key:", key);
       try {
         if (qty < 0) qty = 0;
         const current = findByKey(key);

@@ -60,7 +60,6 @@ export async function removeCartProduct(
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(body),
   });
-  console.log("🚀 ~ removeCartProduct ~ res:", res);
 
   if (!res.ok) throw new Error(await res.text());
   return true;

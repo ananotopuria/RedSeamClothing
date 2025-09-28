@@ -6,7 +6,6 @@ export function cartItemKey(x: {
   colorName: string;
   size: string;
 }): string {
-  console.log("KEY", x);
   return `${x.productId}::${x.colorName}::${x.size}`;
 }
 
@@ -16,7 +15,6 @@ export function mapDtoToLocal(
 ): LocalCartItem[] {
   const items = dto ?? [];
   return items.map((it: CartItemDTO) => {
-    console.log("IT", it);
     const key = cartItemKey({
       productId: it.id,
       colorName: it.color_name || "",

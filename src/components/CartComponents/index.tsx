@@ -33,7 +33,6 @@ function CartPanelContent({
     (async () => {
       // const dto = await getCart();
       // refresh();
-      // console.log("🚀 ~ CartPanelContent ~ dto:", dto);
     })();
     const el = panelRef.current;
     const restoreFocusTo: HTMLElement | null = triggerRef?.current ?? null;

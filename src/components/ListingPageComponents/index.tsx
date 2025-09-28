@@ -38,7 +38,7 @@ function ListingPageComponents() {
       try {
         setLoading(true);
         setErr(null);
-        const res = await fetchProductsPaged({ ...query, per_page: 6 });
+        const res = await fetchProductsPaged({ ...query, per_page: 10 });
         if (!alive) return;
         setItems(res.items);
         setPage(res.meta.current_page);
