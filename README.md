@@ -1,69 +1,105 @@
-# React + TypeScript + Vite
+# RedSeam Clothing
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+RedSeam Clothing is an e-commerce web application where users can browse and purchase clothing products.  
+The project was built as a practice assignment with a focus on **core e-commerce functionalities** such as product listings, filtering, cart management, and checkout.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📌 Features
 
-## Expanding the ESLint configuration
+### 🔑 Authentication
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Login Page**
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+  - Users can log in with email and password.
+  - Fields:
+    - Email (must be valid)
+    - Password (minimum 3 characters)
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- **Registration Page**
+  - Users can register with:
+    - Username (unique, min. 3 characters)
+    - Email (unique, valid format)
+    - Password (min. 3 characters)
+    - Confirm Password (must match password)
+    - Avatar (optional, with preview before submission)
+  - Validation errors are handled from the backend API.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 🛍 Product Listings
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Product list displayed in a **3x4 grid**.
+- **Pagination** – 10 products per page, with page navigation via numbers and arrows.
+- **Sorting and filtering**:
+  - Sort dropdown
+  - Price range filter with input fields
+- Each product card shows:
+  - Image
+  - Price
+  - Name
+- Clicking a product card opens its **detail page**.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+### 📄 Product Detail Page
+
+- Shows detailed information:
+  - Name
+  - Images
+  - Colors (switching color updates the image and vice versa)
+  - Sizes
+  - Description
+  - Brand name and logo
+- **Add to Cart** button
+  - Adding the same product (same size & color) increases its quantity.
+
+---
+
+### 🛒 Cart Sidebar
+
+- Opens from navigation.
+- If empty: shows a friendly message (e.g., _"Uh-oh, you’ve got nothing in your cart yet!"_).
+- If items are present:
+  - Displays list of products with name, image, price, size, and quantity controls (+/-).
+  - Shows **summary** with total quantity and total price.
+  - Checkout button navigates to the **Order Page**.
+
+---
+
+### 📦 Checkout Page
+
+- Displays list of items being purchased.
+- Includes form with the following fields:
+  - First name
+  - Last name
+  - Email (pre-filled from API, editable)
+  - Zip code
+  - Address
+- On submission:
+  - Shows a **congratulatory confirmation modal**.
+  - Empties the cart.
+
+---
+
+## 🛠 Tech Stack
+
+- [React](https://react.dev/) – Frontend library
+- [React Router DOM](https://reactrouter.com/) – Routing
+- [React Icons](https://react-icons.github.io/react-icons/) – Icons
+- [Tailwind CSS](https://tailwindcss.com/) – Styling
+- [TypeScript](https://www.typescriptlang.org/) – Type safety
+- [Vite](https://vitejs.dev/) – Development and build tool
+
+---
+
+## ⚙️ Installation & Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/your-username/redseamclothing.git
+cd redseamclothing
+npm install
+npm run dev
 ```
