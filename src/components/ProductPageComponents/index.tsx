@@ -104,7 +104,6 @@ export default function ProductPageComponents() {
       navigate("/login");
       return;
     }
-    console.log("🚀 ~ handleAddToCart ~ selectedSize:", selectedSize);
 
     if (!product || !currentColor) return;
     setLocalErr(null);

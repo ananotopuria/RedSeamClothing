@@ -30,6 +30,7 @@ type CartCtx = {
   setQty: (key: string, qty: number) => Promise<void>;
   remove: (key: string) => Promise<void>;
   refresh: () => Promise<void>;
+  clearCart: () => Promise<void>;
   totalQty: number;
   totalPrice: number;
 };
@@ -44,6 +45,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   });
 
   const presentRef = useRef<Record<string, Partial<LocalCartItem>>>({});
+
+  const clearCart = useCallback(async () => {
+    try {
+      const emptyCart = [] as LocalCartItem[];
+      setState({ items: emptyCart, loading: false, error: null });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to clear cart";
+      setState((s) => ({ ...s, loading: false, error: msg }));
+    }
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -164,10 +175,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setQty,
       remove,
       refresh,
+      clearCart,
       totalQty,
       totalPrice,
     }),
-    [state, add, inc, dec, setQty, remove, refresh, totalQty, totalPrice]
+    [
+      state,
+      add,
+      inc,
+      dec,
+      setQty,
+      remove,
+      refresh,
+      clearCart,
+      totalQty,
+      totalPrice,
+    ]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

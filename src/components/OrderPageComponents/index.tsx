@@ -11,7 +11,7 @@ type AuthUser = { email?: string } | null;
 
 export default function OrderPageComponents() {
   const navigate = useNavigate();
-  const { state, totalPrice, remove } = useCart();
+  const { state, totalPrice, clearCart } = useCart();
   const delivery = 5;
   const itemsSubtotal = totalPrice;
   const total = itemsSubtotal + delivery;
@@ -68,7 +68,7 @@ export default function OrderPageComponents() {
         throw new Error(data?.message || "Checkout failed");
       }
 
-      state.items.forEach((it) => remove(cartItemKey(it)));
+      clearCart();
 
       setSuccessOpen(true);
     } catch (e) {

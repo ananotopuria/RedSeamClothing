@@ -30,10 +30,6 @@ function CartPanelContent({
   const hasItems = state.items.length > 0;
 
   useEffect(() => {
-    (async () => {
-      // const dto = await getCart();
-      // refresh();
-    })();
     const el = panelRef.current;
     const restoreFocusTo: HTMLElement | null = triggerRef?.current ?? null;
 
