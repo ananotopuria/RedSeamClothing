@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { FiSliders, FiChevronDown } from "react-icons/fi";
+import { FiChevronDown } from "react-icons/fi";
+import { BiSliderAlt } from "react-icons/bi";
 
 type Props = {
   from?: number | null;
@@ -117,15 +118,15 @@ export default function FilterSortBar({ from, to, total }: Props) {
               setOpenFilter((v) => !v);
               setOpenSort(false);
             }}
-            className="flex items-center gap-2 text-[15px]"
+            className="flex items-center gap-2 text-[16px]"
           >
-            <FiSliders className="text-[18px]" />
+            <BiSliderAlt className="text-[24px]" />
             <span>Filter</span>
           </button>
 
           {openFilter && (
-            <div className="absolute right-0 z-20 mt-3 w-[320px] rounded-md border bg-white p-4 shadow-lg">
-              <h4 className="mb-3 text-[15px] font-semibold">Select price</h4>
+            <div className="absolute right-0 z-20 mt-4 w-[392px] h-[17rem] rounded-[8px] border bg-white p-4 shadow-lg">
+              <h4 className="mb-3 text-[15px] font-medium">Select price</h4>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -142,7 +143,7 @@ export default function FilterSortBar({ from, to, total }: Props) {
                       )
                     }
                     placeholder="e.g. 100"
-                    className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full h-[4rem] rounded-[8px] border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
 
@@ -160,7 +161,7 @@ export default function FilterSortBar({ from, to, total }: Props) {
                       )
                     }
                     placeholder="e.g. 500"
-                    className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full h-[4rem] rounded-[8px] border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
               </div>
@@ -169,7 +170,7 @@ export default function FilterSortBar({ from, to, total }: Props) {
                 <button
                   type="button"
                   onClick={applyFilters}
-                  className="rounded bg-[#F24A0D] px-5 py-2 text-white text-sm"
+                  className="rounded-[6px] bg-[#FF4000] px-[2rem] py-[1rem] text-white text-[1.4rem] w-[12rem]"
                 >
                   Apply
                 </button>
@@ -185,7 +186,7 @@ export default function FilterSortBar({ from, to, total }: Props) {
               setOpenSort((v) => !v);
               setOpenFilter(false);
             }}
-            className="flex items-center gap-2 text-[15px]"
+            className="flex items-center gap-2 text-[16px] text-[#10151F]"
           >
             <span className="whitespace-nowrap">{currentSortLabel}</span>
             <FiChevronDown />
@@ -193,12 +194,14 @@ export default function FilterSortBar({ from, to, total }: Props) {
 
           {openSort && (
             <div className="absolute right-0 z-20 mt-3 w-[22rem] h-[18rem] rounded-[8px] border bg-white p-2 shadow-lg">
-              <div className="px-3 py-2 text-[12px] text-zinc-500">Sort by</div>
+              <div className="px-4 py-4 text-[16px] font-semibold text-[#10151F]">
+                Sort by
+              </div>
               {SORTS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => applySort(opt.value)}
-                  className={`block w-full text-left px-3 py-2 rounded text-sm hover:bg-zinc-50 ${
+                  className={`block w-full text-left px-3 py-2 rounded text-[16px] hover:bg-zinc-50 ${
                     sort === opt.value ? "font-medium" : ""
                   }`}
                 >

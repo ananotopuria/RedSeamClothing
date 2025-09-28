@@ -63,16 +63,16 @@ export default function Pagination({
 
   return (
     <nav
-      className="mt-6 flex items-center justify-center gap-2 select-none"
+      className="mt-6 flex items-center justify-center gap-2 select-none mb-[20rem]"
       aria-label="Pagination"
     >
       <button
-        className="px-2 py-1 rounded border text-sm disabled:opacity-40"
+        className="text-[2rem] disabled:opacity-40"
         onClick={() => go(curr - 1)}
         disabled={curr <= 1}
         aria-label="წინა გვერდი"
       >
-        ‹
+        &#60;
       </button>
 
       {pages.map((p, i) =>
@@ -97,17 +97,13 @@ export default function Pagination({
       )}
 
       <button
-        className="px-2 py-1 rounded border text-sm disabled:opacity-40"
+        className="text-[2rem] disabled:opacity-40"
         onClick={() => go(curr + 1)}
         disabled={curr >= total}
         aria-label="შემდეგი გვერდი"
       >
-        ›
+        &#62;
       </button>
-
-      <span className="ml-3 text-sm text-zinc-600">
-        გვერდი {curr} / {total}
-      </span>
     </nav>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "../../services/products";
 import { useCart } from "../../state/useCart";
 import { useIsLoggedIn } from "../../hooks/useIsLoggedIn";
+import { IoCartOutline } from "react-icons/io5";
 
 function classNames(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
@@ -175,10 +176,10 @@ export default function ProductPageComponents() {
                       type="button"
                       aria-label={`Preview image ${i + 1}`}
                       className={classNames(
-                        "aspect-[3/4] w-[12rem] h-[16rem] overflow-hidden rounded-lg border transition ring-offset-2 focus:outline-none focus:ring",
+                        "aspect-[3/4] w-[12rem] h-[16rem] overflow-hidden rounded-lg border transition",
                         active
-                          ? "ring-2 ring-orange-500 border-orange-500"
-                          : "border-zinc-200 hover:border-zinc-300"
+                          ? "border-zinc-200"
+                          : "border-none hover:border-zinc-300"
                       )}
                       onClick={() => {
                         setActiveImage(src);
@@ -241,7 +242,7 @@ export default function ProductPageComponents() {
 
           {!!product.colors?.length && (
             <div className="mt-6">
-              <div className="text-sm text-zinc-600 mb-2">
+              <div className="text-[1.6rem] text-zinc-600 mb-2">
                 Color:{" "}
                 <span className="text-zinc-900 font-medium">
                   {currentColor?.name ?? "-"}
@@ -264,14 +265,14 @@ export default function ProductPageComponents() {
                       setActiveImage(next);
                     }}
                     className={classNames(
-                      "h-9 w-9 rounded-full border flex items-center justify-center ring-offset-2 focus:outline-none focus:ring transition",
+                      "h-[4rem] w-[4rem] rounded-full border flex items-center justify-center transition  hover:border-zinc-900",
                       idx === selectedColorIdx
-                        ? "border-orange-500 ring-2 ring-orange-500"
-                        : "border-zinc-300 hover:border-zinc-400"
+                        ? "border-zinc-300"
+                        : "border-none"
                     )}
                   >
                     <span
-                      className="h-7 w-7 rounded-full block"
+                      className="h-[3rem] w-[3rem] rounded-full block"
                       style={
                         c.name
                           ? { backgroundColor: c.name }
@@ -290,8 +291,8 @@ export default function ProductPageComponents() {
           )}
 
           {product.sizes?.length > 0 ? (
-            <div className="mt-6">
-              <div className="text-sm text-zinc-600 mb-2">
+            <div className="mt-[4.8rem]">
+              <div className="text-[1.6rem] text-zinc-600 mb-2">
                 Size:{" "}
                 <span className="text-zinc-900 font-medium">
                   {selectedSize || "-"}
@@ -304,9 +305,9 @@ export default function ProductPageComponents() {
                     type="button"
                     onClick={() => setSelectedSize(s)}
                     className={classNames(
-                      "px-3 py-1.5 rounded-md border text-sm transition focus:outline-none focus:ring ring-offset-2",
+                      "px-[1.6rem] py-[0.8rem] rounded-[8px] border text-[1.6rem] transition ",
                       s === selectedSize
-                        ? "border-orange-500 text-orange-600 ring-orange-400"
+                        ? "border-[#10151F] text-[#10151F]"
                         : "border-zinc-300 hover:bg-zinc-50"
                     )}
                   >
@@ -316,7 +317,7 @@ export default function ProductPageComponents() {
               </div>
             </div>
           ) : (
-            <div>no sizes available / STYLE ASAP</div>
+            <div className="mt-[2rem] text-[1.6rem]">no sizes available</div>
           )}
 
           <div className="mt-[5rem]">
@@ -330,7 +331,7 @@ export default function ProductPageComponents() {
               id="qty"
               value={qty}
               onChange={(e) => setQty(Number(e.target.value))}
-              className="h-10 w-28 rounded-md border px-3 bg-white"
+              className="h-[3rem] w-[6rem] rounded-[8px] border px-4 bg-white text-[1.6rem]"
             >
               {[1, 2, 3, 4, 5].map((n) => (
                 <option key={n} value={n}>
@@ -346,21 +347,25 @@ export default function ProductPageComponents() {
               onClick={handleAddToCart}
               disabled={isLoggedIn ? !canAdd : false}
               className={classNames(
-                "h-12 w-full rounded-md text-white flex items-center justify-center gap-2 transition focus:outline-none focus:ring ring-offset-2",
+                "h-[4.5rem] w-full rounded-md text-white flex items-center justify-center gap-2 transition focus:outline-none focus:ring ring-offset-2",
                 isLoggedIn && canAdd
-                  ? "bg-[#F24A0D] hover:bg-[#e1440d] focus:ring-orange-400"
+                  ? "bg-[#FF4000] hover:bg-[#e1440d]"
                   : "bg-zinc-400 cursor-not-allowed"
               )}
             >
-              <span aria-hidden>🛒</span>
-              <span>{isLoggedIn ? "Add to cart" : "Log in to add"}</span>
+              <span aria-hidden>
+                <IoCartOutline className="text-[1.8rem]" />
+              </span>
+              <span className="text-[16px]">
+                {isLoggedIn ? "Add to cart" : "Log in to add"}
+              </span>
             </button>
             {localErr && (
               <p className="text-red-600 text-sm mt-2">{localErr}</p>
             )}
           </div>
 
-          <hr className="my-8 border-zinc-200" />
+          <hr className="my-10 border-zinc-200" />
 
           <section aria-labelledby="details-heading">
             <h3
